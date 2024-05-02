@@ -15,11 +15,11 @@ class OrderTest extends TestCase
     const URI = "api/backoffice/orders";
 
     /**
-     * A basic feature test example.
+     * Test retrieving data without filters.
      */
-    public function test_it_can_get_data_without_filter(): void
+    public function test_it_can_get_data_without_filter_and_check_output_strcture(): void
     {
-        Order::factory(100)->create();
+        Order::factory(3)->create();
         $response = $this->get(self::URI);
 
         $response->assertStatus(Response::HTTP_OK)
@@ -32,5 +32,28 @@ class OrderTest extends TestCase
                     ]
                 ]
             ]);
+    }
+
+    /**
+     * Test retrieving data without filters.
+     */
+    public function test_it_can_filter_base_on_status_successful(): void
+    {
+        Order::factory(3)->create();
+        $response = $this->get(self::URI . '?status=pending');
+
+        $response->assertStatus(Response::HTTP_OK);
+    }
+
+
+    /**
+     * Test retrieving data without filters.
+     */
+    public function test_it_can_not_filter_base_on_invalid_status(): void
+    {
+        Order::factory(3)->create();
+        $response = $this->get(self::URI . '?status=invalidstatus');
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 }
