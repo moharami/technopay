@@ -37,4 +37,11 @@ class OrderFactory extends Factory
             'status' => OrderStatus::PENDING,
         ]);
     }
+
+    public function amount($value): self
+    {
+        return $this->state([
+            'amount' => $value,
+        ]);
+    }
 }

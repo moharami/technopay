@@ -5,10 +5,10 @@ namespace App\Filters\Order;
 
 use App\Filters\Filter;
 
-class StatusFilter extends Filter
+class MaxAmountFilter extends Filter
 {
     public function apply()
     {
-        return $this->builder->where('status', $this->value);
+        return $this->builder->where('amount', '<', $this->value);
     }
 }

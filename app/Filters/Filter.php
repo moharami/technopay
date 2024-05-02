@@ -3,9 +3,12 @@
 namespace App\Filters;
 
 
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
 
 class Filter
 {
-    public function __construct(public Request $request){ }
+    public function __construct(public  Builder $builder, public $value)
+    {
+    }
+
 }

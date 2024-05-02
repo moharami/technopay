@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Enums\OrderStatus;
-use App\Filters\QueryFilters;
+use App\Filters\FilterQuery;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,10 +18,9 @@ class Order extends Model
         'status' => OrderStatus::class,
     ];
 
-    public function scopeFilter(Builder $query,Request $request)
+    public function scopeFilter(Builder $query, Request $request)
     {
-        $queryBuilder = new QueryFilters($request, $query);
-
-        return $queryBuilder->apply();
+        $filter = new FilterQuery($query, $request);
+        return  $filter->apply();
     }
 }
