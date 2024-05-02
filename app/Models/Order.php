@@ -18,6 +18,11 @@ class Order extends Model
         'status' => OrderStatus::class,
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function scopeFilter(Builder $query, Request $request)
     {
         $filter = new FilterQuery($query, $request);
