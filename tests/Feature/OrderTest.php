@@ -83,8 +83,9 @@ class OrderTest extends TestCase
         $response = $this->get(self::URI . '?status=' . $status);
 
         $executedQueries = DB::getQueryLog();
-        $query = $executedQueries[1]['query'];
-        $binding = $executedQueries[1]['bindings'][0];
+        $select = $this->getQuerySelect($executedQueries);
+        $query = $select['query'];
+        $binding = $select['bindings'][0];
 
         $expected_query = "select * from `orders` where `status` = ?";
 
@@ -108,12 +109,13 @@ class OrderTest extends TestCase
         $response = $this->get(self::URI . '?min_amount=' . $min_amount . '&max_amount=' . $max_amount);
 
         $executedQueries = DB::getQueryLog();
-        $query = $executedQueries[1]['query'];
-        $binding_min = $executedQueries[1]['bindings'][0];
-        $binding_max = $executedQueries[1]['bindings'][1];
+        $select = $this->getQuerySelect($executedQueries);
+        $query = $select['query'];
+        $binding_min = $select['bindings'][0];
+        $binding_max = $select['bindings'][1];
+
 
         $expected_query = "select * from `orders` where `amount` > ? and `amount` < ?";
-
         // Assert
         $this->assertEquals($expected_query, $query);
         $this->assertEquals($binding_min, $min_amount);
@@ -134,9 +136,9 @@ class OrderTest extends TestCase
         $response = $this->get(self::URI . '?min_amount=' . '&max_amount=' . $max_amount);
 
         $executedQueries = DB::getQueryLog();
-        $query = $executedQueries[1]['query'];
-        $binding_max = $executedQueries[1]['bindings'][0];
-
+        $select = $this->getQuerySelect($executedQueries);
+        $query = $select['query'];
+        $binding_max = $select['bindings'][0];
         $expected_query = "select * from `orders` where `amount` < ?";
 
         // Assert
@@ -159,8 +161,9 @@ class OrderTest extends TestCase
         $response = $this->get(self::URI . '?min_amount=' . $min_amount . '&max_amount=');
 
         $executedQueries = DB::getQueryLog();
-        $query = $executedQueries[1]['query'];
-        $binding_min = $executedQueries[1]['bindings'][0];
+        $select = $this->getQuerySelect($executedQueries);
+        $query = $select['query'];
+        $binding_min = $select['bindings'][0];
 
         $expected_query = "select * from `orders` where `amount` > ?";
 
@@ -184,12 +187,23 @@ class OrderTest extends TestCase
         $response = $this->get(self::URI . '?min_amount=' . '&max_amount=');
 
         $executedQueries = DB::getQueryLog();
-        $query = $executedQueries[1]['query'];
+        $select = $this->getQuerySelect($executedQueries);
+        $query = $select['query'];
 
         $expected_query = "select * from `orders`";
 
         // Assert
         $this->assertEquals($expected_query, $query);
         $response->assertStatus(Response::HTTP_OK);
+    }
+
+ 
+
+    private function getQuerySelect(array $executedQueries)
+    {
+        $q = array_filter($executedQueries, function($item) {
+            return stripos($item['query'], "select") === 0;
+        });
+        return collect($q)->values()->first();
     }
 }
