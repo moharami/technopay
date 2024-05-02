@@ -23,4 +23,18 @@ class OrderFactory extends Factory
             'status' => $this->faker->randomElement(OrderStatus::class),
         ];
     }
+
+
+    /**
+     * Indicate that the order has a specific status.
+     *
+     * @param  string $status
+     * @return self
+     */
+    public function pending(): self
+    {
+        return $this->state([
+            'status' => OrderStatus::PENDING,
+        ]);
+    }
 }

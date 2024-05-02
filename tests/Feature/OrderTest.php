@@ -6,11 +6,23 @@ use App\Models\Order;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class OrderTest extends TestCase
 {
     use RefreshDatabase;
+    protected function setUp(): void
+    {
+        parent::setUp();
+        DB::enableQueryLog();
+    }
+
+    protected function tearDown(): void
+    {
+        DB::disableQueryLog();
+        parent::tearDown();
+    }
 
     const URI = "api/backoffice/orders";
 
@@ -55,5 +67,29 @@ class OrderTest extends TestCase
         $response = $this->get(self::URI . '?status=invalidstatus');
 
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    /**
+     * Test retrieving data without filters.
+     */
+    public function test_it_can_filter_base_on_status(): void
+    {
+        // Arrange
+        Order::factory()->pending()->create();
+        $status = 'pending';
+
+        // Act
+        $response = $this->get(self::URI . '?status=' . $status);
+
+        $executedQueries = DB::getQueryLog();
+        $query = $executedQueries[1]['query'];
+        $binding = $executedQueries[1]['bindings'][0];
+
+        $expected_query = "select * from `orders` where `status` = ?";
+
+        // Assert
+        $this->assertEquals($expected_query, $query);
+        $this->assertEquals($binding, $status);
+        $response->assertStatus(Response::HTTP_OK);
     }
 }

@@ -12,9 +12,9 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(OrderFilterRequest $request)
+    public function index(Request $request)
     {
-        return OrderResource::collection(Order::all());
+        return OrderResource::collection(Order::filter($request)->get());
     }
 
 }
