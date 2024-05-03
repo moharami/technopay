@@ -66,9 +66,7 @@ class OrderTest extends TestCase
     {
         Order::factory(30)->create();
         $response = $this->get(self::URI . '?status=invalidstatus');
-        $response_data = $response->json()['data'];
-        $this->assertEquals(count($response_data), 0);
-        $response->assertStatus(Response::HTTP_OK);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
     /**

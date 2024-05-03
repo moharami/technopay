@@ -26,6 +26,10 @@ class OrderFilterRequest extends FormRequest
     {
         return [
             'status' => ['nullable', 'string', Rule::in(collect(OrderStatus::cases())->pluck('value'))],
+            'min_amount' => 'nullable|numeric|min:0',
+            'max_amount' => 'nullable|numeric|min:0',
+            'national_code' => 'nullable|string|size:10',
+            'mobile_number' => 'nullable|string|regex:/[0-9]{4,}/',
         ];
     }
 }
