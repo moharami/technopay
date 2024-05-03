@@ -16,7 +16,7 @@ class OrderTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-//        DB::enableQueryLog();
+        DB::enableQueryLog();
     }
 
     protected function tearDown(): void
@@ -231,6 +231,43 @@ class OrderTest extends TestCase
         // Assert
         $this->assertEquals($expected_query, $query);
         $this->assertEquals($binding, $first_user->mobile_number);
+        $response->assertStatus(Response::HTTP_OK);
+        $this->assertEquals(count($response->json()['data']), $count_order);
+    }
+
+    /**
+     * Test retrieving data without filters.
+     */
+    public function test_it_can_filter_base_on_national_code(): void
+    {
+//        DB::disableQueryLog();
+        $mobile_number = 1000;
+
+        // Arrange
+        $count_order = 3;
+        $first_user = User::factory()->create();
+        Order::factory($count_order)->for_user($first_user->id)->create();
+
+        $second_user = User::factory()->create();
+        Order::factory(10)->for_user($second_user->id)->create();
+
+
+        DB::enableQueryLog();
+        // Act
+        $response = $this->get(self::URI . '?national_code='. $first_user->national_code);
+
+
+        $executedQueries = DB::getQueryLog();
+
+        $select = $this->getQuerySelect($executedQueries);
+        $query = $select['query'];
+        $binding = $select['bindings'][0];
+
+        $expected_query = "select * from `orders` where exists (select * from `users` where `orders`.`user_id` = `users`.`id` and `national_code` = ?)";
+
+        // Assert
+        $this->assertEquals($expected_query, $query);
+        $this->assertEquals($binding, $first_user->national_code);
         $response->assertStatus(Response::HTTP_OK);
         $this->assertEquals(count($response->json()['data']), $count_order);
     }
