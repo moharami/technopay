@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\FilterClassNotFoundExceptionOccurred;
+use App\Facade\Sms;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
@@ -21,6 +22,7 @@ class SendSmsNotification
      */
     public function handle(FilterClassNotFoundExceptionOccurred $event): void
     {
-        //
+        $mobile = config('admin.mobile');
+        Sms::send($mobile, 'filter not found for '. $event->file);
     }
 }

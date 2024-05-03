@@ -2,12 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Facade\Sms;
 use App\Models\Order;
 use App\Models\User;
+use App\Sms\SmsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Mockery;
 use Tests\TestCase;
 
 class OrderTest extends TestCase
@@ -272,7 +276,7 @@ class OrderTest extends TestCase
 
 
 
-    public function test_it_can_filter_when_occure_exception(): void
+    public function test_it_handle_occurring_exception(): void
     {
         // Arrange
 
@@ -285,6 +289,7 @@ class OrderTest extends TestCase
         // Assert
         $response->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR);
     }
+
 
     private function getQuerySelect(array $executedQueries)
     {
