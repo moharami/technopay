@@ -1,66 +1,99 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Query String Filter for Laravel
 
-## About Laravel
+This is a Laravel application code that provides a mechanism to filter Eloquent queries based on query string parameters. It follows a simple and extensible approach to define custom filters for your models.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Overview
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+The code consists of the following components:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. **Filterable Trait**: This trait is used in your Eloquent models to enable query string filtering.
+2. **FilterQuery Class**: This class handles the logic of applying filters to the query based on the provided request and the available filter classes.
+3. **Filter Classes**: These classes define the actual filtering logic for specific fields of your model. They should be placed in the `App\Filters\YourModel` namespace.
+4. **FailedToFindFilter Exception**: This exception is thrown when a filter class cannot be found for a given query string parameter.
 
-## Learning Laravel
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Setup
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+1. Clone the repository.
+2. Run `composer install` to install dependencies.
+3. Copy the `.env.example` file to `.env` and configure your database settings.
+4. Run `php artisan key:generate` to generate the app key.
+5. Run `php artisan migrate` to migrate the database.
+6. Start the development server by running `php artisan serve`.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-## Laravel Sponsors
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Usage
 
-### Premium Partners
+1. In your model, use the `Filterable` trait:
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```php
+class Order extends Model
+{
+    use HasFactory, Filterable;
 
-## Contributing
+    // ...
+}
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+2. Create a filter class for each filter you want to apply to your model. Place these filter classes in the `App\Filters\YourModel` namespace. For example, to create a filter for the `price` field, create a file `App\Filters\Order\PriceFilter.php`:
 
-## Code of Conduct
+```php
+namespace App\Filters\Order;
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+use YourNamespace\QueryStringFilter\Filter;
 
-## Security Vulnerabilities
+class PriceFilter extends Filter
+{
+    public function apply($value)
+    {
+        return $this->query->where('price', $value);
+    }
+}
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+3. In your controller, you can now filter your queries based on the query string parameters:
 
-## License
+```php
+public function index(OrderFilterRequest $request)
+{
+    return OrderResource::collection(Order::filter($request)->get());
+}
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Exception Handling
+
+The `FailedToFindFilter` exception is thrown when a filter class cannot be found for a given query string parameter. You can customize the behavior of this exception by listening to the `FilterClassNotFoundExceptionOccurred` event in your `EventServiceProvider`:
+
+```php
+protected $listen = [
+    FilterClassNotFoundExceptionOccurred::class => [
+        SendEmailNotification::class,
+        SendSmsNotification::class,
+    ],
+];
+```
+
+This will trigger the `SendEmailNotification` and `SendSmsNotification` listeners when the `FilterClassNotFoundExceptionOccurred` event is dispatched.
+
+
+
+
+## Code Structure
+
+- `app/Models/Order.php`: Contains the `Order` model with the `Filterable` trait.
+- `app/Traits/Filterable.php`: Defines the `Filterable` trait used by the `Order` model.
+- `app/Services/FilterQuery.php`: Implements the logic for applying dynamic filters.
+- `app/Exceptions/FailedToFindFilter.php`: Represents an exception class for missing filter implementations.
+- `app/Listeners/SendEmailNotification.php`: Sends email notifications for `FilterClassNotFoundExceptionOccurred`.
+- `app/Listeners/SendSmsNotification`: Sends SMS notifications for `FilterClassNotFoundExceptionOccurred`.
+
+
+## Testing
+
+Proper tests have been written to ensure the functionality of the query string filtering mechanism. The tests can be found in the `tests/` directory and can be run using the `php artisan test` command.
+
+## API Documentation
+
+The API endpoints are documented using Swagger. You can access the Swagger in public/Doc folder
