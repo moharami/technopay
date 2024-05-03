@@ -270,6 +270,22 @@ class OrderTest extends TestCase
         $this->assertEquals(count($response->json()['data']), $count_order);
     }
 
+
+
+    public function test_it_can_filter_when_occure_exception(): void
+    {
+        // Arrange
+
+        $first_user = User::factory()->create();
+        Order::factory()->for_user($first_user->id)->create();
+
+        // Act
+        $response = $this->get(self::URI . '?fee=1');
+
+        // Assert
+        $response->assertStatus(Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
     private function getQuerySelect(array $executedQueries)
     {
         $q = array_filter($executedQueries, function($item) {

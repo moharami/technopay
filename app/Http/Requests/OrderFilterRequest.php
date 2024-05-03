@@ -30,6 +30,7 @@ class OrderFilterRequest extends FormRequest
             'max_amount' => 'nullable|numeric|min:0',
             'national_code' => 'nullable|string|size:10',
             'mobile_number' => 'nullable|string|regex:/[0-9]{4,}/',
+            'fee' =>'nullable|numeric|min:0',
         ];
     }
 }
