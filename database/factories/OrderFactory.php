@@ -45,4 +45,11 @@ class OrderFactory extends Factory
             'amount' => $value,
         ]);
     }
+
+    public function for_user($user_id): self
+    {
+        return $this->state([
+            'user_id' => $user_id,
+        ]);
+    }
 }

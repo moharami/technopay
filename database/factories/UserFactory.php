@@ -29,6 +29,8 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'mobile_number' => '9891'.$this->faker->regexify('[0-9]{8}'),
+            'national_code' => $this->faker->regexify('[0-9]{10}'),
         ];
     }
 

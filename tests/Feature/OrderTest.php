@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Order;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\Response;
@@ -15,7 +16,7 @@ class OrderTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        DB::enableQueryLog();
+//        DB::enableQueryLog();
     }
 
     protected function tearDown(): void
@@ -197,7 +198,42 @@ class OrderTest extends TestCase
         $response->assertStatus(Response::HTTP_OK);
     }
 
- 
+    /**
+     * Test retrieving data without filters.
+     */
+    public function test_it_can_filter_base_on_mobile_number(): void
+    {
+//        DB::disableQueryLog();
+        $mobile_number = 1000;
+
+        // Arrange
+        $count_order = 3;
+        $first_user = User::factory()->create();
+        Order::factory($count_order)->for_user($first_user->id)->create();
+
+        $second_user = User::factory()->create();
+        Order::factory(10)->for_user($second_user->id)->create();
+
+
+        DB::enableQueryLog();
+        // Act
+        $response = $this->get(self::URI . '?mobile_number='. $first_user->mobile_number);
+
+
+        $executedQueries = DB::getQueryLog();
+
+        $select = $this->getQuerySelect($executedQueries);
+        $query = $select['query'];
+        $binding = $select['bindings'][0];
+
+        $expected_query = "select * from `orders` where exists (select * from `users` where `orders`.`user_id` = `users`.`id` and `mobile_number` = ?)";
+
+        // Assert
+        $this->assertEquals($expected_query, $query);
+        $this->assertEquals($binding, $first_user->mobile_number);
+        $response->assertStatus(Response::HTTP_OK);
+        $this->assertEquals(count($response->json()['data']), $count_order);
+    }
 
     private function getQuerySelect(array $executedQueries)
     {
